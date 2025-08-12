@@ -15,20 +15,21 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             min-height: 100vh;
+            color: #5f6368;
         }
         
         h1 {
-            color: white;
+            color: #202124;
             text-align: center;
             margin-bottom: 30px;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            font-weight: 300;
+            font-size: 2.2rem;
+            font-weight: 400;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
         
         .container {
@@ -42,43 +43,47 @@
         .control-panel {
             flex: 1;
             min-width: 350px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: white;
             padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border: 1px solid #e8eaed;
+            height: fit-content;
         }
         
         .control-panel h2 {
-            color: #2c3e50;
+            color: #202124;
             margin-bottom: 20px;
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 1.4rem;
+            font-weight: 500;
+            border-bottom: 2px solid #4285f4;
+            padding-bottom: 10px;
         }
         
         #map {
             flex: 2.5;
             min-width: 500px;
-            height: 650px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
             overflow: hidden;
+            border: 1px solid #e8eaed;
         }
         
         /* Resumo de Status */
         .status-summary {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%);
             color: white;
             padding: 20px;
-            border-radius: 12px;
+            border-radius: 10px;
             margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 12px rgba(66, 133, 244, 0.3);
         }
         
         .status-summary h3 {
             margin-bottom: 15px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -91,52 +96,60 @@
         }
         
         .status-card {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             padding: 15px;
             border-radius: 8px;
             text-align: center;
             backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .status-card .number {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: bold;
             display: block;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         
         .status-card .label {
             font-size: 0.9rem;
-            opacity: 0.9;
+            opacity: 0.95;
+            color: #ffffff;
+            margin-top: 5px;
         }
         
         .status-card .percentage {
             font-size: 1.1rem;
             font-weight: 600;
             margin-top: 5px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
         
         .status-card.pendente {
-            border-left: 4px solid #ff6b6b;
+            border-left: 4px solid #ea4335;
         }
         
         .status-card.realizado {
-            border-left: 4px solid #51cf66;
+            border-left: 4px solid #34a853;
         }
         
         /* Última Atualização */
         .last-update {
-            background: rgba(52, 152, 219, 0.1);
-            border: 1px solid rgba(52, 152, 219, 0.3);
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
             text-align: center;
-            color: #2980b9;
+            color: #5f6368;
             font-size: 0.9rem;
         }
         
         .last-update i {
             margin-right: 8px;
+            color: #4285f4;
         }
         
         /* Filtros */
@@ -145,9 +158,10 @@
         }
         
         .filter-options h3 {
-            color: #2c3e50;
+            color: #202124;
             margin-bottom: 15px;
             font-size: 1.1rem;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -157,38 +171,36 @@
             padding: 10px 18px;
             margin-right: 10px;
             margin-bottom: 10px;
-            border: none;
-            border-radius: 25px;
+            border: 1px solid #dadce0;
+            border-radius: 20px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 500;
             font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            background: white;
+            color: #5f6368;
         }
         
         .filter-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-color: #4285f4;
         }
         
         .filter-btn.active {
             color: white;
-            transform: translateY(-2px);
+            border-color: transparent;
         }
         
-        #todos {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        #todos.active {
+            background: #4285f4;
         }
         
-        #pendentes {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-            color: white;
+        #pendentes.active {
+            background: #ea4335;
         }
         
-        #realizados {
-            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
-            color: white;
+        #realizados.active {
+            background: #34a853;
         }
         
         /* Lista de Vazamentos */
@@ -203,24 +215,24 @@
         }
         
         .vazamento-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #f1f3f4;
             border-radius: 3px;
         }
         
         .vazamento-list::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
+            background: #dadce0;
             border-radius: 3px;
         }
         
         .vazamento-item {
             padding: 15px;
             margin-bottom: 12px;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            border: 1px solid #e8eaed;
+            background: white;
             position: relative;
-            overflow: hidden;
         }
         
         .vazamento-item::before {
@@ -230,63 +242,55 @@
             left: 0;
             width: 4px;
             height: 100%;
-            transition: width 0.3s ease;
+            transition: width 0.2s ease;
         }
         
         .vazamento-item:hover {
-            transform: translateX(8px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateX(4px);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
         }
         
         .vazamento-item:hover::before {
-            width: 8px;
+            width: 6px;
         }
         
         .pendente {
-            background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
-        }
-        
-        .pendente::before {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-left: 4px solid #ea4335;
         }
         
         .realizado {
-            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
-        }
-        
-        .realizado::before {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            border-left: 4px solid #34a853;
         }
         
         .status-badge {
             display: inline-block;
             padding: 4px 10px;
-            border-radius: 15px;
+            border-radius: 12px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 500;
             color: white;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
         .status-pendente {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            background: #ea4335;
         }
         
         .status-realizado {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            background: #34a853;
         }
         
         .coordinates {
             font-size: 11px;
-            color: #7f8c8d;
+            color: #80868b;
             font-family: 'Courier New', monospace;
             margin-top: 5px;
         }
         
         .vazamento-item .local {
-            font-weight: 600;
-            color: #2c3e50;
+            font-weight: 500;
+            color: #202124;
             margin-bottom: 5px;
             display: flex;
             justify-content: space-between;
@@ -294,14 +298,14 @@
         }
         
         .vazamento-item .description {
-            color: #5a6c7d;
+            color: #5f6368;
             font-size: 0.9rem;
             margin: 8px 0;
         }
         
         .vazamento-item .date {
             font-size: 0.8rem;
-            color: #95a5a6;
+            color: #80868b;
             margin-top: 8px;
         }
         
@@ -315,21 +319,21 @@
         }
         
         .success-message {
-            background: rgba(46, 204, 113, 0.1);
-            color: #27ae60;
-            border: 1px solid rgba(46, 204, 113, 0.3);
+            background: #e8f5e9;
+            color: #137333;
+            border: 1px solid #c8e6c9;
         }
         
         .error-message {
-            background: rgba(231, 76, 60, 0.1);
-            color: #c0392b;
-            border: 1px solid rgba(231, 76, 60, 0.3);
+            background: #fce8e6;
+            color: #d93025;
+            border: 1px solid #f28b82;
         }
         
         .warning-message {
-            background: rgba(243, 156, 18, 0.1);
-            color: #d68910;
-            border: 1px solid rgba(243, 156, 18, 0.3);
+            background: #fef7e0;
+            color: #ea8600;
+            border: 1px solid #fdd663;
         }
         
         /* Responsive Design */
@@ -339,7 +343,7 @@
             }
             
             h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
                 margin-bottom: 20px;
             }
             
@@ -366,7 +370,7 @@
         
         /* Animações */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
@@ -383,7 +387,7 @@
     <h1><i class="fas fa-tint"></i> Sistema de Monitoramento de Vazamentos</h1>
     
     <div class="container">
-        <div class="control-panel">
+        <div class="control-panel" id="controlPanel">
             <h2><i class="fas fa-cogs"></i> Painel de Controle</h2>
             
             <!-- Resumo de Status -->
@@ -459,12 +463,35 @@
         let currentFilter = 'todos';
         let lastUpdateTime = null;
 
+        // Função para ajustar altura do mapa
+        function adjustMapHeight() {
+            const controlPanel = document.getElementById('controlPanel');
+            const mapElement = document.getElementById('map');
+            
+            if (window.innerWidth > 768) {
+                const controlPanelHeight = controlPanel.offsetHeight;
+                mapElement.style.height = controlPanelHeight + 'px';
+            } else {
+                mapElement.style.height = '400px';
+            }
+            
+            // Invalidar tamanho do mapa para re-renderizar
+            if (map) {
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100);
+            }
+        }
+
         // Inicialização do mapa
         function initMap() {
             map = L.map('map').setView(config.defaultView, config.defaultZoom);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
+            
+            // Ajustar altura inicial
+            adjustMapHeight();
         }
 
         // Ícones personalizados
@@ -580,6 +607,7 @@
                             updateMapAndList(currentFilter);
                             updateStatusSummary();
                             updateLastUpdateTime();
+                            adjustMapHeight();
                             updateStatusMessage(`Dados carregados com sucesso! ${vazamentosData.length} vazamentos encontrados`, 'success');
                         },
                         error: function(error) {
@@ -642,6 +670,7 @@
             updateMapAndList(currentFilter);
             updateStatusSummary();
             updateLastUpdateTime();
+            adjustMapHeight();
             updateStatusMessage("Usando dados de exemplo", 'warning');
         }
 
@@ -664,12 +693,12 @@
                 markers[vazamento.id] = L.marker(coords, { icon })
                     .addTo(map)
                     .bindPopup(`
-                        <div style="font-family: 'Segoe UI', sans-serif;">
-                            <h4 style="margin: 0 0 8px 0; color: #2c3e50;">${vazamento.local}</h4>
+                        <div style="font-family: Arial, sans-serif;">
+                            <h4 style="margin: 0 0 8px 0; color: #202124;">${vazamento.local}</h4>
                             <span class="status-badge status-${status}">${status.toUpperCase()}</span>
-                            <p style="margin: 8px 0; color: #5a6c7d;">${vazamento.descricao}</p>
-                            <small style="color: #95a5a6;">Registrado em: ${vazamento.dataRegistro}</small>
-                            ${vazamento.dataReparo ? `<br><small style="color: #95a5a6;">Reparado em: ${vazamento.dataReparo}</small>` : ''}
+                            <p style="margin: 8px 0; color: #5f6368;">${vazamento.descricao}</p>
+                            <small style="color: #80868b;">Registrado em: ${vazamento.dataRegistro}</small>
+                            ${vazamento.dataReparo ? `<br><small style="color: #80868b;">Reparado em: ${vazamento.dataReparo}</small>` : ''}
                         </div>
                     `);
             });
@@ -691,7 +720,7 @@
                 : vazamentosData.filter(v => v.status === filter);
             
             if (filteredData.length === 0) {
-                listContainer.innerHTML = '<div style="text-align: center; color: #95a5a6; padding: 20px;"><i class="fas fa-search"></i><br>Nenhum vazamento encontrado</div>';
+                listContainer.innerHTML = '<div style="text-align: center; color: #80868b; padding: 20px;"><i class="fas fa-search"></i><br>Nenhum vazamento encontrado</div>';
                 return;
             }
             
@@ -752,6 +781,11 @@
             });
             document.getElementById(activeId).classList.add('active');
         }
+
+        // Redimensionamento da janela
+        window.addEventListener('resize', () => {
+            adjustMapHeight();
+        });
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
