@@ -1,10 +1,11 @@
 id,local,lat,lng,status,data_registro,data_reparo,descricao
 1,Rua das Flores,-15.643681,-56.172236,pendente,10/08/2025,,Vazamento em tubulação principal
 2,Avenida Central,-15.641791,-56.172204,realizado,10/08/2025,11/08/2025,Vazamento reparado com sucesso
-3,Julio Campos,-15.640984, -56.173266,realizado,09/08/2025,11/08/2025,Vazamento em tubulação principal2
+3,Julio Campos,-15.640984, -56.173266,realizado,09/08/2025,11/08/2025,Vazamento reparado com sucesso
 4,Rua Vitória,-15.660342, -56.182368,pendente,11/08/2025,,Vazamento na via
 5,Rua Acacia,-15.633757, -56.162926,pendente,10/08/2025,,Vazamento na via
-6,Rua São Sebastião,-15.630155, -56.156695,realizado,08/08/2025,11/08/2025,Vazamento na via
+6,Rua São Sebastião,-15.630155, -56.156695,realizado,08/08/2025,11/08/2025,Vazamento reparado com sucesso
+7,Rua Macapá,-15.638834253199926, -56.1747803589425,pendente,11/08/2025,,Vazamento na via
 
 
 
