@@ -307,7 +307,7 @@
                             }
                             
                             updateMapAndList(currentFilter);
-                            updateStatusMessage(`✅ Dados carregados! ${vazamentosData.length} vazamentos (Fonte: ${url.includes('http') ? 'GitHub' : 'Local'})`, 'success');
+                            updateStatusMessage(`✅ Dados carregados! ${vazamentosData.length} vazamentos (Fonte: ${url.includes('http') ? 'GitHub' : 'demanda espontânea'})`, 'success');
                             
                             // Esconder aviso de CORS se dados foram carregados
                             document.getElementById('corsInfo').style.display = 'none';
@@ -528,4 +528,5 @@
     </script>
 </body>
 </html>
+
 
