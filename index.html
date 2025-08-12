@@ -6,180 +6,432 @@
     <title>Sistema de Monitoramento de Vazamentos de Água</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
+        
         h1 {
-            color: #2c3e50;
+            color: white;
             text-align: center;
             margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 300;
         }
+        
         .container {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
+        
         .control-panel {
             flex: 1;
-            min-width: 300px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            min-width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        #map {
-            flex: 3;
-            min-width: 400px;
-            height: 600px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .filter-options {
+        
+        .control-panel h2 {
+            color: #2c3e50;
             margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
-        .vazamento-list {
-            max-height: 400px;
-            overflow-y: auto;
+        
+        #map {
+            flex: 2.5;
+            min-width: 500px;
+            height: 650px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            overflow: hidden;
         }
-        .vazamento-item {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .vazamento-item:hover {
-            transform: translateX(5px);
-        }
-        .pendente {
-            background-color: #ffebee;
-            border-left: 5px solid #e74c3c;
-        }
-        .realizado {
-            background-color: #e8f5e9;
-            border-left: 5px solid #2ecc71;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 12px;
-            font-weight: bold;
+        
+        /* Resumo de Status */
+        .status-summary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .status-pendente {
-            background-color: #e74c3c;
+        
+        .status-summary h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .status-realizado {
-            background-color: #2ecc71;
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
+        
+        .status-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .status-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .status-card .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .status-card .percentage {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .status-card.pendente {
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .status-card.realizado {
+            border-left: 4px solid #51cf66;
+        }
+        
+        /* Última Atualização */
+        .last-update {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2980b9;
+            font-size: 0.9rem;
+        }
+        
+        .last-update i {
+            margin-right: 8px;
+        }
+        
+        /* Filtros */
+        .filter-options {
+            margin-bottom: 25px;
+        }
+        
+        .filter-options h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
         .filter-btn {
-            padding: 8px 15px;
+            padding: 10px 18px;
             margin-right: 10px;
             margin-bottom: 10px;
             border: none;
-            border-radius: 4px;
+            border-radius: 25px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+        
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
         .filter-btn.active {
             color: white;
+            transform: translateY(-2px);
         }
+        
         #todos {
-            background-color: #3498db;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
+        
         #pendentes {
-            background-color: #e74c3c;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
             color: white;
         }
+        
         #realizados {
-            background-color: #2ecc71;
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
             color: white;
         }
-        .coordinates {
-            font-size: 12px;
-            color: #7f8c8d;
+        
+        /* Lista de Vazamentos */
+        .vazamento-list {
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 5px;
         }
-        .status-info {
-            background-color: white;
+        
+        .vazamento-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .vazamento-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .vazamento-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .vazamento-item {
             padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
         }
+        
+        .vazamento-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .vazamento-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .vazamento-item:hover::before {
+            width: 8px;
+        }
+        
+        .pendente {
+            background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+        }
+        
+        .pendente::before {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .realizado {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        }
+        
+        .realizado::before {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-pendente {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .status-realizado {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .coordinates {
+            font-size: 11px;
+            color: #7f8c8d;
+            font-family: 'Courier New', monospace;
+            margin-top: 5px;
+        }
+        
+        .vazamento-item .local {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .vazamento-item .description {
+            color: #5a6c7d;
+            font-size: 0.9rem;
+            margin: 8px 0;
+        }
+        
+        .vazamento-item .date {
+            font-size: 0.8rem;
+            color: #95a5a6;
+            margin-top: 8px;
+        }
+        
+        /* Loading States */
         .loading-message {
             font-size: 14px;
             margin: 5px 0;
-        }
-        .refresh-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-            display: block;
-            width: 100%;
-        }
-        .refresh-btn:hover {
-            background-color: #2980b9;
-        }
-        .error-message {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-        .success-message {
-            color: #2ecc71;
-            font-weight: bold;
-        }
-        .warning-message {
-            color: #f39c12;
-            font-weight: bold;
-        }
-        .cors-info {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 4px;
             padding: 10px;
-            margin: 10px 0;
-            font-size: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .error-message {
+            background: rgba(231, 76, 60, 0.1);
+            color: #c0392b;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .warning-message {
+            background: rgba(243, 156, 18, 0.1);
+            color: #d68910;
+            border: 1px solid rgba(243, 156, 18, 0.3);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+            
+            .container {
+                flex-direction: column;
+            }
+            
+            .control-panel {
+                min-width: auto;
+                order: 2;
+            }
+            
+            #map {
+                min-width: auto;
+                height: 400px;
+                order: 1;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+        
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .vazamento-item {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .status-summary {
+            animation: fadeIn 0.5s ease-out;
         }
     </style>
 </head>
 <body>
-    <h1>Sistema de Monitoramento de Vazamentos de Água</h1>
+    <h1><i class="fas fa-tint"></i> Sistema de Monitoramento de Vazamentos</h1>
     
     <div class="container">
         <div class="control-panel">
-            <h2>Painel de Controle</h2>
+            <h2><i class="fas fa-cogs"></i> Painel de Controle</h2>
             
-            <div class="filter-options">
-                <h3>Filtrar por Status:</h3>
-                <button id="todos" class="filter-btn active">Todos</button>
-                <button id="pendentes" class="filter-btn">Pendentes</button>
-                <button id="realizados" class="filter-btn">Realizados</button>
+            <!-- Resumo de Status -->
+            <div class="status-summary">
+                <h3><i class="fas fa-chart-pie"></i> Resumo Geral</h3>
+                <div class="status-grid">
+                    <div class="status-card pendente">
+                        <span class="number" id="pendentesCount">0</span>
+                        <div class="label">Pendentes</div>
+                        <div class="percentage" id="pendentesPercent">0%</div>
+                    </div>
+                    <div class="status-card realizado">
+                        <span class="number" id="realizadosCount">0</span>
+                        <div class="label">Realizados</div>
+                        <div class="percentage" id="realizadosPercent">0%</div>
+                    </div>
+                </div>
             </div>
             
-            <h3>Lista de Vazamentos:</h3>
+            <!-- Última Atualização -->
+            <div class="last-update" id="lastUpdate">
+                <i class="fas fa-clock"></i>
+                <span id="lastUpdateText">Aguardando carregamento...</span>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="filter-options">
+                <h3><i class="fas fa-filter"></i> Filtrar por Status</h3>
+                <button id="todos" class="filter-btn active">
+                    <i class="fas fa-list"></i> Todos
+                </button>
+                <button id="pendentes" class="filter-btn">
+                    <i class="fas fa-exclamation-circle"></i> Pendentes
+                </button>
+                <button id="realizados" class="filter-btn">
+                    <i class="fas fa-check-circle"></i> Realizados
+                </button>
+            </div>
+            
+            <!-- Lista de Vazamentos -->
+            <h3><i class="fas fa-map-marker-alt"></i> Lista de Vazamentos</h3>
             <div class="vazamento-list" id="vazamentoList">
                 <!-- Itens serão adicionados dinamicamente -->
             </div>
-
-            <div class="status-info">
-                <p class="loading-message">Sistema carregará dados do arquivo vazamentos.csv</p>
-                <p class="loading-message" id="loadingStatus">Inicializando...</p>
-                <button id="refreshBtn" class="refresh-btn">Atualização de Dados</button>
-                
-                <div class="cors-info" id="corsInfo" style="display: none;">
-                    <strong>⚠️ Problema de CORS detectado</strong><br>
-                    Para resolver: coloque o arquivo vazamentos.csv na mesma pasta do index.html no seu repositório GitHub Pages.
-                </div>
+            
+            <!-- Status de Carregamento -->
+            <div class="loading-message" id="loadingStatus">
+                <i class="fas fa-spinner fa-spin"></i> Inicializando sistema...
             </div>
         </div>
         
@@ -190,11 +442,10 @@
     <script>
         // Configurações
         const config = {
-            // Primeira tentativa: arquivo no GitHub Raw
             csvUrls: [
-                './vazamentos.csv', // Arquivo local (mesma pasta)
-                'vazamentos.csv', // Arquivo local (alternativo)
-                'https://raw.githubusercontent.com/almeidamentz/mapaagua/main/vazamentos.csv' // GitHub Raw
+                './vazamentos.csv',
+                'vazamentos.csv',
+                'https://raw.githubusercontent.com/almeidamentz/mapaagua/main/vazamentos.csv'
             ],
             defaultView: [-15.6427, -56.1722],
             defaultZoom: 15,
@@ -206,7 +457,7 @@
         const markers = {};
         let vazamentosData = [];
         let currentFilter = 'todos';
-        let loadAttempts = 0;
+        let lastUpdateTime = null;
 
         // Inicialização do mapa
         function initMap() {
@@ -232,14 +483,43 @@
             })
         };
 
+        // Função para atualizar resumo de status
+        function updateStatusSummary() {
+            const total = vazamentosData.length;
+            const pendentes = vazamentosData.filter(v => v.status === 'pendente').length;
+            const realizados = vazamentosData.filter(v => v.status === 'realizado').length;
+            
+            const pendentesPercent = total > 0 ? Math.round((pendentes / total) * 100) : 0;
+            const realizadosPercent = total > 0 ? Math.round((realizados / total) * 100) : 0;
+            
+            document.getElementById('pendentesCount').textContent = pendentes;
+            document.getElementById('realizadosCount').textContent = realizados;
+            document.getElementById('pendentesPercent').textContent = `${pendentesPercent}%`;
+            document.getElementById('realizadosPercent').textContent = `${realizadosPercent}%`;
+        }
+
+        // Função para atualizar última atualização
+        function updateLastUpdateTime() {
+            lastUpdateTime = new Date();
+            const timeString = lastUpdateTime.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('lastUpdateText').textContent = `Última atualização: ${timeString}`;
+        }
+
         // Função para mostrar mensagem de status
         function updateStatusMessage(message, type = 'info') {
             const statusElement = document.getElementById('loadingStatus');
-            statusElement.textContent = message;
+            statusElement.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check' : type === 'error' ? 'fa-times' : 'fa-info-circle'}"></i> ${message}`;
             statusElement.className = `loading-message ${type}-message`;
         }
 
-        // Função para tentar carregar CSV de múltiplas URLs
+        // Função para tentar carregar CSV
         async function tryLoadCSV(url) {
             const timestamp = new Date().getTime();
             const urlWithCache = url.includes('?') ? `${url}&t=${timestamp}` : `${url}?t=${timestamp}`;
@@ -260,10 +540,9 @@
             return await response.text();
         }
 
-        // Carregar dados do CSV com fallback
+        // Carregar dados do CSV
         async function loadCSVData() {
-            loadAttempts++;
-            updateStatusMessage("Tentando carregar dados...", 'info');
+            updateStatusMessage("Carregando dados...", 'info');
             
             let lastError = null;
             
@@ -271,24 +550,16 @@
                 const url = config.csvUrls[i];
                 
                 try {
-                    updateStatusMessage(`Tentativa ${i + 1}: ${url.includes('http') ? 'GitHub Raw' : 'Arquivo Local'}`, 'info');
-                    
                     const csvData = await tryLoadCSV(url);
                     
                     if (!csvData.trim()) {
                         throw new Error("Arquivo CSV está vazio");
                     }
                     
-                    // Processar CSV
                     Papa.parse(csvData, {
                         header: true,
                         skipEmptyLines: true,
                         complete: function(results) {
-                            if (results.errors.length > 0) {
-                                console.warn("Avisos no CSV:", results.errors);
-                            }
-                            
-                            // Validar e processar dados
                             vazamentosData = results.data
                                 .filter(item => item.id && item.local && item.lat && item.lng)
                                 .map(item => ({
@@ -307,44 +578,28 @@
                             }
                             
                             updateMapAndList(currentFilter);
-                            updateStatusMessage(`✅ Dados carregados! ${vazamentosData.length} vazamentos informador (Fonte: ${url.includes('http') ? 'GitHub' : 'Cidadão'})`, 'success');
-                            
-                            // Esconder aviso de CORS se dados foram carregados
-                            document.getElementById('corsInfo').style.display = 'none';
-                            
-                            console.log("Dados carregados com sucesso:", vazamentosData);
+                            updateStatusSummary();
+                            updateLastUpdateTime();
+                            updateStatusMessage(`Dados carregados com sucesso! ${vazamentosData.length} vazamentos encontrados`, 'success');
                         },
                         error: function(error) {
                             throw new Error(`Erro ao processar CSV: ${error.message}`);
                         }
                     });
                     
-                    return; // Sucesso, sair do loop
+                    return;
                     
                 } catch (error) {
-                    console.warn(`Falha ao carregar de ${url}:`, error.message);
                     lastError = error;
-                    
-                    // Se é erro de CORS/Network, mostrar dica
-                    if (error.message.includes('NetworkError') || error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
-                        document.getElementById('corsInfo').style.display = 'block';
-                    }
                 }
             }
             
-            // Se chegou aqui, todas as tentativas falharam
-            updateStatusMessage(`❌ Erro: ${lastError?.message || 'Não foi possível carregar os dados'}`, 'error');
-            
-            // Mostrar dados de exemplo se não conseguir carregar
-            if (loadAttempts === 1) {
-                loadExampleData();
-            }
+            updateStatusMessage(`Erro ao carregar dados: ${lastError?.message}`, 'error');
+            loadExampleData();
         }
 
-        // Carregar dados de exemplo para demonstração
+        // Carregar dados de exemplo
         function loadExampleData() {
-            updateStatusMessage("⚠️ Usando dados de exemplo (arquivo CSV não acessível)", 'warning');
-            
             vazamentosData = [
                 {
                     id: "1",
@@ -371,7 +626,7 @@
                     status: "pendente",
                     dataRegistro: "2023-05-15",
                     dataReparo: null,
-                    descricao: "Vazamento em tubulação principal2"
+                    descricao: "Vazamento em tubulação principal"
                 },
                 {
                     id: "4",
@@ -385,47 +640,42 @@
             ];
             
             updateMapAndList(currentFilter);
-            document.getElementById('corsInfo').style.display = 'block';
+            updateStatusSummary();
+            updateLastUpdateTime();
+            updateStatusMessage("Usando dados de exemplo", 'warning');
         }
 
         // Atualizar mapa e lista
         function updateMapAndList(filter = 'todos') {
-            // Limpar marcadores existentes
             Object.values(markers).forEach(marker => map.removeLayer(marker));
             
-            // Filtrar dados
             const filteredData = filter === 'todos' 
                 ? vazamentosData 
                 : vazamentosData.filter(v => v.status === filter);
             
-            // Adicionar novos marcadores
             filteredData.forEach(vazamento => {
                 const coords = vazamento.coordenadas;
                 const status = vazamento.status.toLowerCase();
                 
-                // Verificar se as coordenadas são válidas
-                if (isNaN(coords[0]) || isNaN(coords[1])) {
-                    console.warn(`Coordenadas inválidas para vazamento ${vazamento.id}:`, coords);
-                    return;
-                }
+                if (isNaN(coords[0]) || isNaN(coords[1])) return;
                 
                 const icon = icons[status] || icons.pendente;
                 
-                markers[vazamento.id] = L.marker(coords, {
-                    icon: icon
-                }).addTo(map).bindPopup(`
-                    <b>${vazamento.local}</b><br>
-                    <span class="status-badge status-${status}">${status.toUpperCase()}</span><br>
-                    ${vazamento.descricao}<br>
-                    <small>Registrado em: ${vazamento.dataRegistro}</small>
-                    ${vazamento.dataReparo ? `<br><small>Reparado em: ${vazamento.dataReparo}</small>` : ''}
-                `);
+                markers[vazamento.id] = L.marker(coords, { icon })
+                    .addTo(map)
+                    .bindPopup(`
+                        <div style="font-family: 'Segoe UI', sans-serif;">
+                            <h4 style="margin: 0 0 8px 0; color: #2c3e50;">${vazamento.local}</h4>
+                            <span class="status-badge status-${status}">${status.toUpperCase()}</span>
+                            <p style="margin: 8px 0; color: #5a6c7d;">${vazamento.descricao}</p>
+                            <small style="color: #95a5a6;">Registrado em: ${vazamento.dataRegistro}</small>
+                            ${vazamento.dataReparo ? `<br><small style="color: #95a5a6;">Reparado em: ${vazamento.dataReparo}</small>` : ''}
+                        </div>
+                    `);
             });
             
-            // Atualizar lista
             updateVazamentoList(filter);
             
-            // Ajustar visualização do mapa se houver dados
             if (filteredData.length > 0) {
                 const group = new L.featureGroup(Object.values(markers));
                 map.fitBounds(group.getBounds().pad(0.1));
@@ -441,7 +691,7 @@
                 : vazamentosData.filter(v => v.status === filter);
             
             if (filteredData.length === 0) {
-                listContainer.innerHTML = '<p>Nenhum vazamento encontrado para este filtro.</p>';
+                listContainer.innerHTML = '<div style="text-align: center; color: #95a5a6; padding: 20px;"><i class="fas fa-search"></i><br>Nenhum vazamento encontrado</div>';
                 return;
             }
             
@@ -449,16 +699,21 @@
                 const item = document.createElement('div');
                 item.className = `vazamento-item ${vazamento.status}`;
                 item.innerHTML = `
-                    <div>
+                    <div class="local">
                         <strong>${vazamento.local}</strong>
                         <span class="status-badge status-${vazamento.status}">
                             ${vazamento.status.toUpperCase()}
                         </span>
                     </div>
-                    <div class="coordinates">${vazamento.coordenadas[0].toFixed(6)}, ${vazamento.coordenadas[1].toFixed(6)}</div>
-                    <div>${vazamento.descricao}</div>
-                    <small>Registrado em: ${vazamento.dataRegistro}</small>
-                    ${vazamento.dataReparo ? `<br><small>Reparado em: ${vazamento.dataReparo}</small>` : ''}
+                    <div class="coordinates">
+                        <i class="fas fa-map-marker-alt"></i> 
+                        ${vazamento.coordenadas[0].toFixed(6)}, ${vazamento.coordenadas[1].toFixed(6)}
+                    </div>
+                    <div class="description">${vazamento.descricao}</div>
+                    <div class="date">
+                        <i class="fas fa-calendar"></i> Registrado em: ${vazamento.dataRegistro}
+                        ${vazamento.dataReparo ? `<br><i class="fas fa-wrench"></i> Reparado em: ${vazamento.dataReparo}` : ''}
+                    </div>
                 `;
                 
                 item.addEventListener('click', () => {
@@ -472,7 +727,7 @@
             });
         }
 
-        // Event listeners para filtros
+        // Event listeners
         document.getElementById('todos').addEventListener('click', () => {
             currentFilter = 'todos';
             setActiveButton('todos');
@@ -491,11 +746,6 @@
             updateMapAndList('realizado');
         });
 
-        // Botão de atualização manual
-        document.getElementById('refreshBtn').addEventListener('click', () => {
-            loadCSVData();
-        });
-
         function setActiveButton(activeId) {
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
@@ -505,30 +755,17 @@
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("Inicializando aplicação...");
             initMap();
-            
-            // Carregar dados imediatamente
             loadCSVData();
             
-            // Configurar atualização automática (apenas se dados foram carregados com sucesso)
+            // Atualização automática
             setInterval(() => {
                 if (vazamentosData.length > 0) {
-                    console.log("Atualizando dados automaticamente...");
                     loadCSVData();
                 }
             }, config.refreshInterval);
         });
-
-        // Tratamento de erros globais
-        window.addEventListener('error', (event) => {
-            console.error('Erro global:', event.error);
-            updateStatusMessage('Erro inesperado na aplicação', 'error');
-        });
     </script>
 </body>
 </html>
-
-
-
 
