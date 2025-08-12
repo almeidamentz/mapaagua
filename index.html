@@ -127,6 +127,29 @@
             display: block;
             width: 100%;
         }
+        .refresh-btn:hover {
+            background-color: #2980b9;
+        }
+        .error-message {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .success-message {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .warning-message {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .cors-info {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -149,9 +172,14 @@
             </div>
 
             <div class="status-info">
-                <p class="loading-message">Dados carregados automaticamente do arquivo vazamentos.csv</p>
-                <p class="loading-message" id="loadingStatus">Carregando dados...</p>
-                <button id="refreshBtn" class="refresh-btn">Atualizar Dados Agora</button>
+                <p class="loading-message">Sistema carregará dados do arquivo vazamentos.csv</p>
+                <p class="loading-message" id="loadingStatus">Inicializando...</p>
+                <button id="refreshBtn" class="refresh-btn">Tentar Carregar Dados</button>
+                
+                <div class="cors-info" id="corsInfo" style="display: none;">
+                    <strong>⚠️ Problema de CORS detectado</strong><br>
+                    Para resolver: coloque o arquivo vazamentos.csv na mesma pasta do index.html no seu repositório GitHub Pages.
+                </div>
             </div>
         </div>
         
@@ -160,9 +188,14 @@
     
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        // Configurações - ATUALIZE ESTES VALORES!
+        // Configurações
         const config = {
-            csvUrl: 'https://raw.githubusercontent.com/almeidamentz.github.io/mapaagua//main/vazamentos.csv',
+            // Primeira tentativa: arquivo no GitHub Raw
+            csvUrls: [
+                './vazamentos.csv', // Arquivo local (mesma pasta)
+                'vazamentos.csv', // Arquivo local (alternativo)
+                'https://raw.githubusercontent.com/almeidamentz/mapaagua/main/vazamentos.csv' // GitHub Raw
+            ],
             defaultView: [-15.6427, -56.1722],
             defaultZoom: 15,
             refreshInterval: 300000 // 5 minutos
@@ -172,6 +205,8 @@
         let map;
         const markers = {};
         let vazamentosData = [];
+        let currentFilter = 'todos';
+        let loadAttempts = 0;
 
         // Inicialização do mapa
         function initMap() {
@@ -197,42 +232,160 @@
             })
         };
 
-        // Carregar dados do CSV
-        async function loadCSVData() {
-            try {
-                document.getElementById('loadingStatus').textContent = "Carregando dados...";
-                const timestamp = new Date().getTime();
-                const response = await fetch(`${config.csvUrl}?t=${timestamp}`);
-                
-                if (!response.ok) throw new Error("Erro ao carregar arquivo");
-                
-                const csvData = await response.text();
-                
-                Papa.parse(csvData, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        vazamentosData = results.data.map(item => ({
-                            id: item.id,
-                            local: item.local,
-                            coordenadas: [parseFloat(item.lat), parseFloat(item.lng)],
-                            status: item.status,
-                            dataRegistro: item.data_registro,
-                            dataReparo: item.data_reparo || null,
-                            descricao: item.descricao
-                        }));
-                        
-                        updateMapAndList();
-                        updateStatusMessage(vazamentosData.length);
-                    },
-                    error: function(error) {
-                        throw new Error("Erro ao processar CSV");
-                    }
-                });
-            } catch (error) {
-                console.error("Erro:", error);
-                document.getElementById('loadingStatus').textContent = "Erro ao carregar dados. Tente atualizar.";
+        // Função para mostrar mensagem de status
+        function updateStatusMessage(message, type = 'info') {
+            const statusElement = document.getElementById('loadingStatus');
+            statusElement.textContent = message;
+            statusElement.className = `loading-message ${type}-message`;
+        }
+
+        // Função para tentar carregar CSV de múltiplas URLs
+        async function tryLoadCSV(url) {
+            const timestamp = new Date().getTime();
+            const urlWithCache = url.includes('?') ? `${url}&t=${timestamp}` : `${url}?t=${timestamp}`;
+            
+            const response = await fetch(urlWithCache, {
+                method: 'GET',
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
+            
+            return await response.text();
+        }
+
+        // Carregar dados do CSV com fallback
+        async function loadCSVData() {
+            loadAttempts++;
+            updateStatusMessage("Tentando carregar dados...", 'info');
+            
+            let lastError = null;
+            
+            for (let i = 0; i < config.csvUrls.length; i++) {
+                const url = config.csvUrls[i];
+                
+                try {
+                    updateStatusMessage(`Tentativa ${i + 1}: ${url.includes('http') ? 'GitHub Raw' : 'Arquivo Local'}`, 'info');
+                    
+                    const csvData = await tryLoadCSV(url);
+                    
+                    if (!csvData.trim()) {
+                        throw new Error("Arquivo CSV está vazio");
+                    }
+                    
+                    // Processar CSV
+                    Papa.parse(csvData, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            if (results.errors.length > 0) {
+                                console.warn("Avisos no CSV:", results.errors);
+                            }
+                            
+                            // Validar e processar dados
+                            vazamentosData = results.data
+                                .filter(item => item.id && item.local && item.lat && item.lng)
+                                .map(item => ({
+                                    id: item.id.toString(),
+                                    local: item.local.trim(),
+                                    coordenadas: [parseFloat(item.lat), parseFloat(item.lng)],
+                                    status: item.status ? item.status.toLowerCase().trim() : 'pendente',
+                                    dataRegistro: item.data_registro || 'Não informado',
+                                    dataReparo: item.data_reparo || null,
+                                    descricao: item.descricao || 'Sem descrição'
+                                }))
+                                .filter(item => !isNaN(item.coordenadas[0]) && !isNaN(item.coordenadas[1]));
+                            
+                            if (vazamentosData.length === 0) {
+                                throw new Error("Nenhum dado válido encontrado no CSV");
+                            }
+                            
+                            updateMapAndList(currentFilter);
+                            updateStatusMessage(`✅ Dados carregados! ${vazamentosData.length} vazamentos (Fonte: ${url.includes('http') ? 'GitHub' : 'Local'})`, 'success');
+                            
+                            // Esconder aviso de CORS se dados foram carregados
+                            document.getElementById('corsInfo').style.display = 'none';
+                            
+                            console.log("Dados carregados com sucesso:", vazamentosData);
+                        },
+                        error: function(error) {
+                            throw new Error(`Erro ao processar CSV: ${error.message}`);
+                        }
+                    });
+                    
+                    return; // Sucesso, sair do loop
+                    
+                } catch (error) {
+                    console.warn(`Falha ao carregar de ${url}:`, error.message);
+                    lastError = error;
+                    
+                    // Se é erro de CORS/Network, mostrar dica
+                    if (error.message.includes('NetworkError') || error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+                        document.getElementById('corsInfo').style.display = 'block';
+                    }
+                }
+            }
+            
+            // Se chegou aqui, todas as tentativas falharam
+            updateStatusMessage(`❌ Erro: ${lastError?.message || 'Não foi possível carregar os dados'}`, 'error');
+            
+            // Mostrar dados de exemplo se não conseguir carregar
+            if (loadAttempts === 1) {
+                loadExampleData();
+            }
+        }
+
+        // Carregar dados de exemplo para demonstração
+        function loadExampleData() {
+            updateStatusMessage("⚠️ Usando dados de exemplo (arquivo CSV não acessível)", 'warning');
+            
+            vazamentosData = [
+                {
+                    id: "1",
+                    local: "Rua das Flores",
+                    coordenadas: [-15.643681, -56.172236],
+                    status: "pendente",
+                    dataRegistro: "2023-05-15",
+                    dataReparo: null,
+                    descricao: "Vazamento em tubulação principal"
+                },
+                {
+                    id: "2",
+                    local: "Avenida Central",
+                    coordenadas: [-15.641791, -56.172204],
+                    status: "realizado",
+                    dataRegistro: "2023-05-10",
+                    dataReparo: "2023-05-12",
+                    descricao: "Vazamento reparado com sucesso"
+                },
+                {
+                    id: "3",
+                    local: "Julio Campos",
+                    coordenadas: [-15.640984, -56.173266],
+                    status: "pendente",
+                    dataRegistro: "2023-05-15",
+                    dataReparo: null,
+                    descricao: "Vazamento em tubulação principal2"
+                },
+                {
+                    id: "4",
+                    local: "Rua Vitória",
+                    coordenadas: [-15.660342, -56.182368],
+                    status: "pendente",
+                    dataRegistro: "2023-05-15",
+                    dataReparo: null,
+                    descricao: "Vazamento na via"
+                }
+            ];
+            
+            updateMapAndList(currentFilter);
+            document.getElementById('corsInfo').style.display = 'block';
         }
 
         // Atualizar mapa e lista
@@ -250,11 +403,19 @@
                 const coords = vazamento.coordenadas;
                 const status = vazamento.status.toLowerCase();
                 
+                // Verificar se as coordenadas são válidas
+                if (isNaN(coords[0]) || isNaN(coords[1])) {
+                    console.warn(`Coordenadas inválidas para vazamento ${vazamento.id}:`, coords);
+                    return;
+                }
+                
+                const icon = icons[status] || icons.pendente;
+                
                 markers[vazamento.id] = L.marker(coords, {
-                    icon: icons[status]
+                    icon: icon
                 }).addTo(map).bindPopup(`
                     <b>${vazamento.local}</b><br>
-                    <span class="status-${status}">${status.toUpperCase()}</span><br>
+                    <span class="status-badge status-${status}">${status.toUpperCase()}</span><br>
                     ${vazamento.descricao}<br>
                     <small>Registrado em: ${vazamento.dataRegistro}</small>
                     ${vazamento.dataReparo ? `<br><small>Reparado em: ${vazamento.dataReparo}</small>` : ''}
@@ -263,6 +424,12 @@
             
             // Atualizar lista
             updateVazamentoList(filter);
+            
+            // Ajustar visualização do mapa se houver dados
+            if (filteredData.length > 0) {
+                const group = new L.featureGroup(Object.values(markers));
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
         }
 
         function updateVazamentoList(filter = 'todos') {
@@ -272,6 +439,11 @@
             const filteredData = filter === 'todos' 
                 ? vazamentosData 
                 : vazamentosData.filter(v => v.status === filter);
+            
+            if (filteredData.length === 0) {
+                listContainer.innerHTML = '<p>Nenhum vazamento encontrado para este filtro.</p>';
+                return;
+            }
             
             filteredData.forEach(vazamento => {
                 const item = document.createElement('div');
@@ -286,40 +458,43 @@
                     <div class="coordinates">${vazamento.coordenadas[0].toFixed(6)}, ${vazamento.coordenadas[1].toFixed(6)}</div>
                     <div>${vazamento.descricao}</div>
                     <small>Registrado em: ${vazamento.dataRegistro}</small>
+                    ${vazamento.dataReparo ? `<br><small>Reparado em: ${vazamento.dataReparo}</small>` : ''}
                 `;
                 
                 item.addEventListener('click', () => {
-                    map.setView(vazamento.coordenadas, 18);
-                    markers[vazamento.id].openPopup();
+                    if (markers[vazamento.id]) {
+                        map.setView(vazamento.coordenadas, 18);
+                        markers[vazamento.id].openPopup();
+                    }
                 });
                 
                 listContainer.appendChild(item);
             });
         }
 
-        function updateStatusMessage(count) {
-            document.getElementById('loadingStatus').textContent = 
-                `Dados carregados com sucesso! ${count} vazamentos`;
-        }
-
         // Event listeners para filtros
         document.getElementById('todos').addEventListener('click', () => {
+            currentFilter = 'todos';
             setActiveButton('todos');
             updateMapAndList('todos');
         });
 
         document.getElementById('pendentes').addEventListener('click', () => {
+            currentFilter = 'pendente';
             setActiveButton('pendentes');
             updateMapAndList('pendente');
         });
 
         document.getElementById('realizados').addEventListener('click', () => {
+            currentFilter = 'realizado';
             setActiveButton('realizados');
             updateMapAndList('realizado');
         });
 
         // Botão de atualização manual
-        document.getElementById('refreshBtn').addEventListener('click', loadCSVData);
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            loadCSVData();
+        });
 
         function setActiveButton(activeId) {
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -330,11 +505,25 @@
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
+            console.log("Inicializando aplicação...");
             initMap();
+            
+            // Carregar dados imediatamente
             loadCSVData();
             
-            // Atualizar automaticamente
-            setInterval(loadCSVData, config.refreshInterval);
+            // Configurar atualização automática (apenas se dados foram carregados com sucesso)
+            setInterval(() => {
+                if (vazamentosData.length > 0) {
+                    console.log("Atualizando dados automaticamente...");
+                    loadCSVData();
+                }
+            }, config.refreshInterval);
+        });
+
+        // Tratamento de erros globais
+        window.addEventListener('error', (event) => {
+            console.error('Erro global:', event.error);
+            updateStatusMessage('Erro inesperado na aplicação', 'error');
         });
     </script>
 </body>
